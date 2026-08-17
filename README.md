@@ -1,22 +1,53 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/header/document.svg?title=Maintain+Code+Map&subtitle=Evidence-backed+repository+maps.&logo=map&theme=slate&align=center&mode=dark" />
-    <img alt="Maintain Code Map — evidence-backed repository maps" src="https://shieldcn.dev/header/document.svg?title=Maintain+Code+Map&subtitle=Evidence-backed+repository+maps.&logo=map&theme=slate&align=center&mode=light" />
-  </picture>
-</p>
+# Maintain Code Map
 
 > A portable [Agent Skills](https://agentskills.io/) workflow that builds one evidence-backed model of a repository: JSON, Markdown, HTML, and a freshness lock.
 
 <p align="center">
-  <a href="https://github.com/gvastethecreator/maintain-code-map-skill/actions/workflows/validate.yml"><img alt="Validation status" src="https://shieldcn.dev/github/ci/gvastethecreator/maintain-code-map-skill.svg?workflow=validate&branch=main&variant=secondary&size=xs" /></a>
-  <a href="https://agentskills.io/"><img alt="Agent Skills compatible" src="https://shieldcn.dev/badge/Agent+Skills-compatible-111111.svg?variant=secondary&size=xs" /></a>
-  <a href="https://github.com/gvastethecreator/maintain-code-map-skill/stargazers"><img alt="GitHub stars" src="https://shieldcn.dev/github/stars/gvastethecreator/maintain-code-map-skill.svg?variant=secondary&size=xs" /></a>
-  <a href="LICENSE"><img alt="MIT license" src="https://shieldcn.dev/github/license/gvastethecreator/maintain-code-map-skill.svg?variant=secondary&size=xs" /></a>
+  <a href="https://github.com/gvastethecreator/code-map-skill/actions/workflows/validate.yml"><img alt="Validation status" src="https://img.shields.io/github/actions/workflow/status/gvastethecreator/code-map-skill/validate.yml?branch=main&label=validate&style=flat-square" /></a>
+  <a href="https://agentskills.io/"><img alt="Agent Skills compatible" src="https://img.shields.io/badge/Agent_Skills-compatible-111111?style=flat-square" /></a>
+  <a href="https://github.com/gvastethecreator/code-map-skill/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/gvastethecreator/code-map-skill?style=flat-square" /></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/gvastethecreator/code-map-skill?style=flat-square" /></a>
 </p>
 
-[Install](#install) · [Use it when](#use-it-when) · [Contributing](CONTRIBUTING.md)
+[Site](https://gvastethecreator.github.io/code-map-skill/) · [Install](#install) · [Examples](#examples) · [Use it when](#use-it-when) · [Contributing](CONTRIBUTING.md)
 
 Agents read Markdown first. Humans open the published HTML. The lock records module fingerprints so a later agent can tell whether the map is stale before it edits product code.
+
+The live site is [gvastethecreator.github.io/code-map-skill](https://gvastethecreator.github.io/code-map-skill/). GitHub Pages publishes the `docs/` folder from `main`.
+
+## Examples
+
+Four fictional infrastructures. Each cell opens the live HTML map. GitHub does not run the diagram inside this README.
+
+<table>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="https://gvastethecreator.github.io/code-map-skill/examples/checkout-api/codemap.html"><img src="docs/examples/checkout-api.png" alt="northstar-checkout layered API map" width="100%" /></a>
+      <p><b>Checkout API</b><br>Gateway, domain services, Postgres, and Stripe.</p>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="https://gvastethecreator.github.io/code-map-skill/examples/event-ingest/codemap.html"><img src="docs/examples/event-ingest.png" alt="harbor-ingest event-driven map" width="100%" /></a>
+      <p><b>Event ingest</b><br>Publish/subscribe workers, a queue, and side effects.</p>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="https://gvastethecreator.github.io/code-map-skill/examples/desktop-studio/codemap.html"><img src="docs/examples/desktop-studio.png" alt="lumen-studio desktop host map" width="100%" /></a>
+      <p><b>Desktop studio</b><br>Electron main, preload bridge, UI, and a sidecar.</p>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="https://gvastethecreator.github.io/code-map-skill/examples/edge-platform/codemap.html"><img src="docs/examples/edge-platform.png" alt="ember-edge worker platform map" width="100%" /></a>
+      <p><b>Edge platform</b><br>Worker, Durable Objects, D1/KV/R2, and one unknown hop.</p>
+    </td>
+  </tr>
+</table>
+
+Source JSON lives in [`examples/`](examples/). Published HTML copies live in [`docs/examples/`](docs/examples/). Rebuild the gallery from the skill repo:
+
+```powershell
+python scripts/build_examples.py
+node scripts/capture_examples.cjs
+```
 
 ## Use it when
 
@@ -30,7 +61,7 @@ Do not use it to invent architecture from folder names. Unproven relationships s
 ## Install
 
 ```powershell
-npx skills add gvastethecreator/maintain-code-map-skill --skill maintain-code-map
+npx skills add gvastethecreator/code-map-skill --skill maintain-code-map
 ```
 
 For manual project installation, copy or link `SKILLS/maintain-code-map` to the host's skill directory:
@@ -83,6 +114,8 @@ node <skill-root>/scripts/verify_codemap_browser.cjs docs/codemap/codemap.html
 - [generate_repository_map.py](./SKILLS/maintain-code-map/scripts/generate_repository_map.py): conservative tracked-source baseline.
 - [generate_drive_maps.py](./SKILLS/maintain-code-map/scripts/generate_drive_maps.py): Git-root inventory and validated batch publish.
 - [evals/cases.json](./evals/cases.json): routing and safety cases.
+- [examples/](./examples/): sample JSON models and local HTML maps.
+- [docs/](./docs/): GitHub Pages site, example HTML copies, and gallery screenshots.
 
 ## Verify
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Code map · __REPO_NAME__</title>
+  <title>Code map · harbor-ingest</title>
   <style>
     :root {
       color-scheme: dark;
@@ -531,7 +531,7 @@
     </aside>
     <section class="map-shell" aria-label="Code map canvas">
       <div class="map-head">
-        <h1 id="repo-name">__REPO_NAME__</h1>
+        <h1 id="repo-name">harbor-ingest</h1>
         <p class="map-meta"><span id="generated-commit"></span> · <span id="scope"></span></p>
         <p id="generated-at" class="map-time" hidden></p>
       </div>
@@ -608,7 +608,7 @@
       <p class="empty">Select a module to read callers, callees, and tests.</p>
     </aside>
   </main>
-  <script id="codemap-data" type="application/json">__CODEMAP_DATA__</script>
+  <script id="codemap-data" type="application/json">{"generated_at":"2026-08-16T22:00:00Z","generated_from_commit":"0000000000000000000000000000000000000000","scope":["apps/ingest","workers","infra"],"nodes":[{"id":"audit-log","path":"apps/ingest/audit.ts","type":"module","boundary":"Observability","entrypoints":["apps/ingest/audit.ts:recordEvent"],"tests":[],"callers":[{"id":"schema-guard","type":"writes"}],"callees":[],"evidence":{"status":"verified","locations":[{"path":"apps/ingest/audit.ts","symbol":"recordEvent"}]}},{"id":"event-bus","path":"infra/nats/subjects.ts","type":"queue","boundary":"Messaging","entrypoints":["infra/nats/subjects.ts:SHIPMENT_RECEIVED"],"tests":[],"callers":[{"id":"notify-worker","type":"subscribes"},{"id":"schema-guard","type":"publishes"},{"id":"stock-worker","type":"subscribes"}],"callees":[],"evidence":{"status":"verified","locations":[{"path":"infra/nats/subjects.ts","symbol":"SHIPMENT_RECEIVED"}]}},{"id":"ingest-api","path":"apps/ingest/http.ts","type":"interface","boundary":"Intake","entrypoints":["apps/ingest/http.ts:receiveShipment"],"tests":["apps/ingest/http.test.ts"],"callers":[],"callees":[{"id":"schema-guard","type":"calls"}],"evidence":{"status":"verified","locations":[{"path":"apps/ingest/http.ts","symbol":"receiveShipment"}]}},{"id":"mailgun","path":"node_modules/mailgun.js","type":"external","boundary":"External","entrypoints":["node_modules/mailgun.js:messages.create"],"tests":[],"callers":[{"id":"notify-worker","type":"calls"}],"callees":[],"evidence":{"status":"verified","locations":[{"path":"node_modules/mailgun.js","symbol":"messages.create"}]}},{"id":"notify-worker","path":"workers/notify/handler.ts","type":"service","boundary":"Workers","entrypoints":["workers/notify/handler.ts:sendNotice"],"tests":[],"callers":[],"callees":[{"id":"event-bus","type":"subscribes"},{"id":"mailgun","type":"calls"}],"evidence":{"status":"verified","locations":[{"path":"workers/notify/handler.ts","symbol":"sendNotice"}]}},{"id":"schema-guard","path":"apps/ingest/validate.ts","type":"service","boundary":"Intake","entrypoints":["apps/ingest/validate.ts:assertPayload"],"tests":[],"callers":[{"id":"ingest-api","type":"calls"}],"callees":[{"id":"audit-log","type":"writes"},{"id":"event-bus","type":"publishes"}],"evidence":{"status":"verified","locations":[{"path":"apps/ingest/validate.ts","symbol":"assertPayload"}]}},{"id":"stock-worker","path":"workers/stock/handler.ts","type":"service","boundary":"Workers","entrypoints":["workers/stock/handler.ts:applyStock"],"tests":["workers/stock/handler.test.ts"],"callers":[],"callees":[{"id":"event-bus","type":"subscribes"},{"id":"warehouse-db","type":"writes"}],"evidence":{"status":"verified","locations":[{"path":"workers/stock/handler.ts","symbol":"applyStock"}]}},{"id":"warehouse-db","path":"infra/postgres/warehouse.sql","type":"database","boundary":"Data","entrypoints":["infra/postgres/warehouse.sql:stock_levels"],"tests":[],"callers":[{"id":"stock-worker","type":"writes"}],"callees":[],"evidence":{"status":"verified","locations":[{"path":"infra/postgres/warehouse.sql","symbol":"stock_levels"}]}}],"edges":[{"from":"ingest-api","to":"schema-guard","type":"calls","evidence":{"status":"verified","locations":[{"path":"apps/ingest/http.ts","symbol":"validateBody"}]}},{"from":"notify-worker","to":"event-bus","type":"subscribes","evidence":{"status":"verified","locations":[{"path":"workers/notify/handler.ts","symbol":"onShipment"}]}},{"from":"notify-worker","to":"mailgun","type":"calls","evidence":{"status":"verified","locations":[{"path":"workers/notify/handler.ts","symbol":"emailOps"}]}},{"from":"schema-guard","to":"audit-log","type":"writes","evidence":{"status":"verified","locations":[{"path":"apps/ingest/validate.ts","symbol":"writeAudit"}]}},{"from":"schema-guard","to":"event-bus","type":"publishes","evidence":{"status":"verified","locations":[{"path":"apps/ingest/validate.ts","symbol":"publishShipment"}]}},{"from":"stock-worker","to":"event-bus","type":"subscribes","evidence":{"status":"verified","locations":[{"path":"workers/stock/handler.ts","symbol":"onShipment"}]}},{"from":"stock-worker","to":"warehouse-db","type":"writes","evidence":{"status":"verified","locations":[{"path":"workers/stock/handler.ts","symbol":"upsertStock"}]}}],"flows":[{"id":"receive-shipment","trigger":"POST /shipments","steps":["ingest-api","schema-guard","event-bus"],"outcome":"Validated shipment published onto the bus"}]}</script>
   <script>
     (() => {
       "use strict";
