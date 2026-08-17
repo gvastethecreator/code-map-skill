@@ -24,9 +24,10 @@ Visual contract for `assets/codemap-template.html`. HTML is a published artifact
 ## Path highlight
 
 - Hover or select a card lights its full caller and callee path.
-- Hot edges keep a solid stroke and add a dashed march in the connection direction.
+- Idle cables stay the typed color. Hot cables blend source-card color, typed color at 50%, then destination-card color. Ease-out on enter, ease-in on leave. Do not scale or move the graph.
+- Hot edges add a dashed march in the connection direction.
 - Connector hit area stays wide. Unconnected nodes and edges go more transparent. Do not redraw the graph on hover.
-- Hover or select inverts the origin card wash. Do not scale or move the graph on hover.
+- Hover or select inverts the origin card wash.
 
 ## Checklist
 

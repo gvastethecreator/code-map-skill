@@ -1,0 +1,46 @@
+[
+  {
+    "slug": "checkout-api",
+    "title": "northstar-checkout",
+    "caption": "Layered checkout API",
+    "blurb": "Gateway, domain services, Postgres, and Stripe.",
+    "html": "examples/checkout-api/codemap.html",
+    "docs_html": "docs/examples/checkout-api/codemap.html",
+    "json": "examples/checkout-api/codemap.json",
+    "nodes": 8,
+    "edges": 9
+  },
+  {
+    "slug": "event-ingest",
+    "title": "harbor-ingest",
+    "caption": "Event-driven warehouse",
+    "blurb": "Publish/subscribe workers, a queue, and side effects.",
+    "html": "examples/event-ingest/codemap.html",
+    "docs_html": "docs/examples/event-ingest/codemap.html",
+    "json": "examples/event-ingest/codemap.json",
+    "nodes": 8,
+    "edges": 7
+  },
+  {
+    "slug": "desktop-studio",
+    "title": "lumen-studio",
+    "caption": "Desktop host and renderer",
+    "blurb": "Electron main, preload bridge, UI, and a sidecar.",
+    "html": "examples/desktop-studio/codemap.html",
+    "docs_html": "docs/examples/desktop-studio/codemap.html",
+    "json": "examples/desktop-studio/codemap.json",
+    "nodes": 8,
+    "edges": 8
+  },
+  {
+    "slug": "edge-platform",
+    "title": "ember-edge",
+    "caption": "Edge worker platform",
+    "blurb": "Worker, Durable Objects, D1/KV/R2, and one unknown hop.",
+    "html": "examples/edge-platform/codemap.html",
+    "docs_html": "docs/examples/edge-platform/codemap.html",
+    "json": "examples/edge-platform/codemap.json",
+    "nodes": 8,
+    "edges": 9
+  }
+]

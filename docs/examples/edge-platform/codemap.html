@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Code map · __REPO_NAME__</title>
+  <title>Code map · ember-edge</title>
   <style>
     :root {
       color-scheme: dark;
@@ -531,7 +531,7 @@
     </aside>
     <section class="map-shell" aria-label="Code map canvas">
       <div class="map-head">
-        <h1 id="repo-name">__REPO_NAME__</h1>
+        <h1 id="repo-name">ember-edge</h1>
         <p class="map-meta"><span id="generated-commit"></span> · <span id="scope"></span></p>
         <p id="generated-at" class="map-time" hidden></p>
       </div>
@@ -608,7 +608,7 @@
       <p class="empty">Select a module to read callers, callees, and tests.</p>
     </aside>
   </main>
-  <script id="codemap-data" type="application/json">__CODEMAP_DATA__</script>
+  <script id="codemap-data" type="application/json">{"generated_at":"2026-08-16T22:00:00Z","generated_from_commit":"0000000000000000000000000000000000000000","scope":["src","bindings"],"nodes":[{"id":"auth-do","path":"src/auth-do.ts","type":"service","boundary":"Durable Objects","entrypoints":["src/auth-do.ts:AuthObject"],"tests":[],"callers":[{"id":"worker","type":"calls"}],"callees":[{"id":"sessions-d1","type":"writes"}],"evidence":{"status":"verified","locations":[{"path":"src/auth-do.ts","symbol":"AuthObject"}]}},{"id":"billing-legacy","path":"vendor/billing","type":"external","boundary":"External","entrypoints":["vendor/billing:createInvoice"],"tests":[],"callers":[{"id":"worker","type":"calls"}],"callees":[],"evidence":{"status":"verified","locations":[{"path":"vendor/billing","symbol":"createInvoice"}]}},{"id":"config-kv","path":"bindings/kv/config.ts","type":"database","boundary":"Storage","entrypoints":["bindings/kv/config.ts:CONFIG"],"tests":[],"callers":[{"id":"worker","type":"reads"}],"callees":[],"evidence":{"status":"verified","locations":[{"path":"bindings/kv/config.ts","symbol":"CONFIG"}]}},{"id":"email-queue","path":"bindings/queue/email.ts","type":"queue","boundary":"Messaging","entrypoints":["bindings/queue/email.ts:EMAIL"],"tests":[],"callers":[{"id":"worker","type":"publishes"}],"callees":[],"evidence":{"status":"verified","locations":[{"path":"bindings/queue/email.ts","symbol":"EMAIL"}]}},{"id":"media-r2","path":"bindings/r2/media.ts","type":"database","boundary":"Storage","entrypoints":["bindings/r2/media.ts:MEDIA"],"tests":[],"callers":[{"id":"worker","type":"writes"}],"callees":[],"evidence":{"status":"verified","locations":[{"path":"bindings/r2/media.ts","symbol":"MEDIA"}]}},{"id":"rate-do","path":"src/rate-do.ts","type":"service","boundary":"Durable Objects","entrypoints":["src/rate-do.ts:RateLimiter"],"tests":[],"callers":[{"id":"worker","type":"calls"}],"callees":[],"evidence":{"status":"verified","locations":[{"path":"src/rate-do.ts","symbol":"RateLimiter"}]}},{"id":"sessions-d1","path":"bindings/d1/schema.sql","type":"database","boundary":"Storage","entrypoints":["bindings/d1/schema.sql:sessions"],"tests":[],"callers":[{"id":"auth-do","type":"writes"},{"id":"worker","type":"reads"},{"id":"worker","type":"writes"}],"callees":[],"evidence":{"status":"verified","locations":[{"path":"bindings/d1/schema.sql","symbol":"sessions"}]}},{"id":"worker","path":"src/index.ts","type":"interface","boundary":"Edge","entrypoints":["src/index.ts:fetch"],"tests":["src/index.test.ts"],"callers":[],"callees":[{"id":"auth-do","type":"calls"},{"id":"billing-legacy","type":"calls"},{"id":"config-kv","type":"reads"},{"id":"email-queue","type":"publishes"},{"id":"media-r2","type":"writes"},{"id":"rate-do","type":"calls"},{"id":"sessions-d1","type":"reads"},{"id":"sessions-d1","type":"writes"}],"evidence":{"status":"verified","locations":[{"path":"src/index.ts","symbol":"fetch"}]}}],"edges":[{"from":"auth-do","to":"sessions-d1","type":"writes","evidence":{"status":"verified","locations":[{"path":"src/auth-do.ts","symbol":"persistSession"}]}},{"from":"worker","to":"auth-do","type":"calls","evidence":{"status":"verified","locations":[{"path":"src/index.ts","symbol":"getAuth"}]}},{"from":"worker","to":"billing-legacy","type":"calls","evidence":{"status":"unknown","locations":[]}},{"from":"worker","to":"config-kv","type":"reads","evidence":{"status":"verified","locations":[{"path":"src/config.ts","symbol":"getFlag"}]}},{"from":"worker","to":"email-queue","type":"publishes","evidence":{"status":"verified","locations":[{"path":"src/mail.ts","symbol":"enqueueWelcome"}]}},{"from":"worker","to":"media-r2","type":"writes","evidence":{"status":"verified","locations":[{"path":"src/media.ts","symbol":"putObject"}]}},{"from":"worker","to":"rate-do","type":"calls","evidence":{"status":"verified","locations":[{"path":"src/index.ts","symbol":"checkLimit"}]}},{"from":"worker","to":"sessions-d1","type":"reads","evidence":{"status":"verified","locations":[{"path":"src/session.ts","symbol":"selectSession"}]}},{"from":"worker","to":"sessions-d1","type":"writes","evidence":{"status":"verified","locations":[{"path":"src/session.ts","symbol":"upsertSession"}]}}],"flows":[{"id":"sign-in","trigger":"POST /auth/magic-link","steps":["worker","auth-do","sessions-d1"],"outcome":"Durable Object writes the signed-in session"}]}</script>
   <script>
     (() => {
       "use strict";

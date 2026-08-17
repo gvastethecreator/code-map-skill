@@ -1,0 +1,385 @@
+{
+  "generated_at": "2026-08-16T22:00:00Z",
+  "generated_from_commit": "0000000000000000000000000000000000000000",
+  "scope": [
+    "src/main",
+    "src/preload",
+    "src/renderer",
+    "sidecar"
+  ],
+  "nodes": [
+    {
+      "id": "electron-main",
+      "path": "src/main/index.ts",
+      "type": "service",
+      "boundary": "Host",
+      "entrypoints": [
+        "src/main/index.ts:createWindow"
+      ],
+      "tests": [
+        "src/main/index.test.ts"
+      ],
+      "callers": [
+        {
+          "id": "ipc-router",
+          "type": "calls"
+        }
+      ],
+      "callees": [
+        {
+          "id": "ffmpeg-sidecar",
+          "type": "calls"
+        },
+        {
+          "id": "os-fs",
+          "type": "reads"
+        },
+        {
+          "id": "user-store",
+          "type": "writes"
+        }
+      ],
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/main/index.ts",
+            "symbol": "createWindow"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ffmpeg-sidecar",
+      "path": "sidecar/ffmpeg/run.ts",
+      "type": "service",
+      "boundary": "Native",
+      "entrypoints": [
+        "sidecar/ffmpeg/run.ts:exportClip"
+      ],
+      "tests": [],
+      "callers": [
+        {
+          "id": "electron-main",
+          "type": "calls"
+        }
+      ],
+      "callees": [],
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "sidecar/ffmpeg/run.ts",
+            "symbol": "exportClip"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ipc-router",
+      "path": "src/main/ipc.ts",
+      "type": "module",
+      "boundary": "Bridge",
+      "entrypoints": [
+        "src/main/ipc.ts:registerIpc"
+      ],
+      "tests": [],
+      "callers": [
+        {
+          "id": "preload",
+          "type": "calls"
+        }
+      ],
+      "callees": [
+        {
+          "id": "electron-main",
+          "type": "calls"
+        }
+      ],
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/main/ipc.ts",
+            "symbol": "registerIpc"
+          }
+        ]
+      }
+    },
+    {
+      "id": "os-fs",
+      "path": "src/main/fs.ts",
+      "type": "external",
+      "boundary": "External",
+      "entrypoints": [
+        "src/main/fs.ts:readFile"
+      ],
+      "tests": [],
+      "callers": [
+        {
+          "id": "electron-main",
+          "type": "reads"
+        }
+      ],
+      "callees": [],
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/main/fs.ts",
+            "symbol": "readFile"
+          }
+        ]
+      }
+    },
+    {
+      "id": "preload",
+      "path": "src/preload/index.ts",
+      "type": "interface",
+      "boundary": "Bridge",
+      "entrypoints": [
+        "src/preload/index.ts:exposeApi"
+      ],
+      "tests": [],
+      "callers": [
+        {
+          "id": "renderer",
+          "type": "calls"
+        }
+      ],
+      "callees": [
+        {
+          "id": "ipc-router",
+          "type": "calls"
+        }
+      ],
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/preload/index.ts",
+            "symbol": "exposeApi"
+          }
+        ]
+      }
+    },
+    {
+      "id": "renderer",
+      "path": "src/renderer/app.tsx",
+      "type": "module",
+      "boundary": "UI",
+      "entrypoints": [
+        "src/renderer/app.tsx:App"
+      ],
+      "tests": [],
+      "callers": [],
+      "callees": [
+        {
+          "id": "preload",
+          "type": "calls"
+        },
+        {
+          "id": "timeline",
+          "type": "imports"
+        },
+        {
+          "id": "user-store",
+          "type": "reads"
+        }
+      ],
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/renderer/app.tsx",
+            "symbol": "App"
+          }
+        ]
+      }
+    },
+    {
+      "id": "timeline",
+      "path": "src/renderer/timeline.tsx",
+      "type": "module",
+      "boundary": "UI",
+      "entrypoints": [
+        "src/renderer/timeline.tsx:TimelineView"
+      ],
+      "tests": [],
+      "callers": [
+        {
+          "id": "renderer",
+          "type": "imports"
+        }
+      ],
+      "callees": [],
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/renderer/timeline.tsx",
+            "symbol": "TimelineView"
+          }
+        ]
+      }
+    },
+    {
+      "id": "user-store",
+      "path": "src/main/store.ts",
+      "type": "database",
+      "boundary": "Data",
+      "entrypoints": [
+        "src/main/store.ts:readProject"
+      ],
+      "tests": [],
+      "callers": [
+        {
+          "id": "electron-main",
+          "type": "writes"
+        },
+        {
+          "id": "renderer",
+          "type": "reads"
+        }
+      ],
+      "callees": [],
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/main/store.ts",
+            "symbol": "readProject"
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "electron-main",
+      "to": "ffmpeg-sidecar",
+      "type": "calls",
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/main/export.ts",
+            "symbol": "runSidecar"
+          }
+        ]
+      }
+    },
+    {
+      "from": "electron-main",
+      "to": "os-fs",
+      "type": "reads",
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/main/fs.ts",
+            "symbol": "readMedia"
+          }
+        ]
+      }
+    },
+    {
+      "from": "electron-main",
+      "to": "user-store",
+      "type": "writes",
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/main/store.ts",
+            "symbol": "saveProject"
+          }
+        ]
+      }
+    },
+    {
+      "from": "ipc-router",
+      "to": "electron-main",
+      "type": "calls",
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/main/ipc.ts",
+            "symbol": "handleExport"
+          }
+        ]
+      }
+    },
+    {
+      "from": "preload",
+      "to": "ipc-router",
+      "type": "calls",
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/preload/index.ts",
+            "symbol": "exportClip"
+          }
+        ]
+      }
+    },
+    {
+      "from": "renderer",
+      "to": "preload",
+      "type": "calls",
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/renderer/desktop.ts",
+            "symbol": "invokeExport"
+          }
+        ]
+      }
+    },
+    {
+      "from": "renderer",
+      "to": "timeline",
+      "type": "imports",
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/renderer/app.tsx",
+            "symbol": "TimelineView"
+          }
+        ]
+      }
+    },
+    {
+      "from": "renderer",
+      "to": "user-store",
+      "type": "reads",
+      "evidence": {
+        "status": "verified",
+        "locations": [
+          {
+            "path": "src/renderer/project.ts",
+            "symbol": "hydrate"
+          }
+        ]
+      }
+    }
+  ],
+  "flows": [
+    {
+      "id": "export-clip",
+      "trigger": "Export button",
+      "steps": [
+        "renderer",
+        "preload",
+        "ipc-router",
+        "electron-main",
+        "ffmpeg-sidecar"
+      ],
+      "outcome": "Sidecar writes a media file"
+    }
+  ]
+}

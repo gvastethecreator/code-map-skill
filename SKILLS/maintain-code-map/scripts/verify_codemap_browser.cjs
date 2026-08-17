@@ -399,7 +399,14 @@ async function main() {
 }
 
 
-main().catch((error) => {
-  process.stderr.write(`${error.stack || error.message}\n`);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch((error) => {
+    process.stderr.write(`${error.stack || error.message}\n`);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  resolveBrowserExecutable,
+  CdpPipe,
+};
