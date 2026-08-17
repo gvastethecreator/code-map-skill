@@ -15,6 +15,16 @@ import subprocess
 import sys
 from typing import Any, Iterable
 
+_SCRIPTS = str(Path(__file__).resolve().parent)
+if _SCRIPTS not in sys.path:
+    sys.path.insert(0, _SCRIPTS)
+
+from codemap_common import (
+    LANGUAGE_EXTENSIONS,
+    MANIFEST_FILENAMES,
+    is_skill_doc,
+    select_analysis_files,
+)
 
 EXCLUDED_PARTS = {
     ".agents",
@@ -40,44 +50,7 @@ EXCLUDED_PARTS = {
     "venv",
 }
 MAX_EVIDENCE_LOCATIONS = 3
-TEXT_EXTENSIONS = {
-    ".c",
-    ".cc",
-    ".cpp",
-    ".cs",
-    ".csproj",
-    ".css",
-    ".go",
-    ".h",
-    ".hpp",
-    ".html",
-    ".java",
-    ".js",
-    ".json",
-    ".jsx",
-    ".kt",
-    ".md",
-    ".mjs",
-    ".cjs",
-    ".php",
-    ".ps1",
-    ".py",
-    ".rb",
-    ".rs",
-    ".scss",
-    ".sh",
-    ".svelte",
-    ".swift",
-    ".toml",
-    ".ts",
-    ".tsx",
-    ".vue",
-    ".webmanifest",
-    ".xaml",
-    ".yaml",
-    ".yml",
-}
-CODE_EXTENSIONS = TEXT_EXTENSIONS - {".md", ".json", ".toml", ".yaml", ".yml"}
+CODE_EXTENSIONS = LANGUAGE_EXTENSIONS
 CONTAINER_DIRS = {
     "app",
     "apps",
@@ -110,13 +83,7 @@ ENTRY_NAMES = {
 }
 TEST_MARKERS = {"test", "tests", "spec", "specs", "__tests__"}
 AUXILIARY_ROOTS = {".circleci", ".github", ".vscode", "docs", "examples", "test", "tests"}
-MANIFEST_NAMES = {
-    "cargo.toml",
-    "go.mod",
-    "package.json",
-    "pyproject.toml",
-    "requirements.txt",
-}
+MANIFEST_NAMES = MANIFEST_FILENAMES
 RESOLVE_EXTENSIONS = (
     "",
     ".ts",
@@ -218,7 +185,7 @@ def is_primary_path(relative: str) -> bool:
     path = PurePosixPath(relative)
     if is_test_path(relative) or path.parts[0].lower() in AUXILIARY_ROOTS:
         return False
-    return path.suffix.lower() in CODE_EXTENSIONS or path.name.lower() in MANIFEST_NAMES
+    return path.suffix.lower() in CODE_EXTENSIONS or path.name.lower() in MANIFEST_NAMES or is_skill_doc(relative)
 
 
 def slug(value: str) -> str:
@@ -445,34 +412,6 @@ def parse_go(
             add_reference(references, relative, None, specifier, "imports", specifier.split("/", 1)[0])
 
 
-def parse_markdown(relative: str, content: str, files: set[str], references: list[dict[str, str]]) -> None:
-    for match in re.finditer(r"\[[^\]]+\]\(([^)]+)\)", content):
-        specifier = match.group(1).strip().split(" ", 1)[0].strip("<>")
-        if not specifier or specifier.startswith(("#", "http://", "https://", "mailto:")):
-            continue
-        target = resolve_path(relative, specifier, files)
-        if target:
-            add_reference(references, relative, target, specifier, "reads")
-    for match in re.finditer(r"(?<!`)`([^`\r\n]{1,200})`(?!`)", content):
-        specifier = match.group(1).strip().rstrip(".,:;)")
-        if not specifier or any(character.isspace() for character in specifier):
-            continue
-        target = resolve_path(relative, specifier, files)
-        if target:
-            add_reference(references, relative, target, match.group(1).strip(), "reads")
-
-
-def parse_html(relative: str, content: str, files: set[str], references: list[dict[str, str]]) -> None:
-    for match in re.finditer(r"(?i)(?:src|href)=[\"']([^\"']+)[\"']", content):
-        specifier = match.group(1)
-        if specifier.startswith(("http://", "https://", "//")):
-            add_reference(references, relative, None, specifier, "imports", specifier.split("/", 3)[2] if "//" in specifier else specifier)
-            continue
-        target = resolve_path(relative, specifier, files)
-        if target:
-            add_reference(references, relative, target, specifier, "imports")
-
-
 def manifest_strings(value: Any) -> Iterable[str]:
     if isinstance(value, str):
         yield value
@@ -555,7 +494,7 @@ def parse_skill_references(
         if match:
             skill_names[match.group(1).strip()] = relative
     for relative in files:
-        if PurePosixPath(relative).suffix.lower() != ".md":
+        if not is_skill_doc(relative):
             continue
         content = read_text(repo, relative, cache)
         for skill_name, target in skill_names.items():
@@ -590,10 +529,6 @@ def collect_references(repo: Path, files: list[str], cache: dict[str, str]) -> l
             parse_rust(relative, content, file_set, references)
         elif suffix == ".go":
             parse_go(relative, content, file_set, references, module_name)
-        elif suffix == ".md":
-            parse_markdown(relative, content, file_set, references)
-        elif suffix in {".html", ".htm"}:
-            parse_html(relative, content, file_set, references)
         elif suffix == ".csproj":
             parse_project_references(relative, content, file_set, references)
         if PurePosixPath(relative).name == "package.json":
@@ -757,9 +692,9 @@ def make_flows(_nodes: list[dict[str, Any]], _edges: list[dict[str, Any]]) -> li
 
 def generate(repo: Path, generated_at: str) -> tuple[dict[str, Any], dict[str, Any]]:
     all_files = [path for path in tracked_files(repo) if not is_excluded(path)]
-    text_files = [path for path in all_files if PurePosixPath(path).suffix.lower() in TEXT_EXTENSIONS]
+    text_files, used_docs_fallback = select_analysis_files(all_files)
     if not text_files:
-        raise AnalysisError("no tracked text source files")
+        raise AnalysisError("no tracked source files")
     cache: dict[str, str] = {}
     evidence_files = [path for path in text_files if read_text(repo, path, cache).strip()]
     if not evidence_files:
@@ -836,6 +771,7 @@ def generate(repo: Path, generated_at: str) -> tuple[dict[str, Any], dict[str, A
         "tracked_files": len(all_files),
         "text_files": len(text_files),
         "evidence_files": len(evidence_files),
+        "used_docs_fallback": used_docs_fallback,
         "groups": len(groups),
         "nodes": len(nodes),
         "edges": len(edges),

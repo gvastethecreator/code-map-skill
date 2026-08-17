@@ -16,6 +16,7 @@ REQUIRED = [
     SKILL / "assets" / "codemap-template.html",
     SKILL / "references" / "artifact-contract.md",
     SKILL / "references" / "diagram-grammar.md",
+    SKILL / "scripts" / "codemap_common.py",
     SKILL / "scripts" / "codemap_tool.py",
     SKILL / "scripts" / "generate_repository_map.py",
     SKILL / "scripts" / "generate_drive_maps.py",

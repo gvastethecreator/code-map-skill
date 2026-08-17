@@ -116,7 +116,7 @@ Generate with `codemap_tool.py lock`.
   "generated_at": "2026-08-04T15:04:05Z",
   "scanned_scope": ["src", "tests"],
   "excluded_directories": ["docs/codemap", "node_modules"],
-  "fingerprint_algorithm": "sha256-path-content-v1",
+  "fingerprint_algorithm": "sha256-path-content-v2",
   "modules": [
     {
       "id": "src/api",
@@ -130,7 +130,7 @@ Generate with `codemap_tool.py lock`.
 
 `source_commit` is `HEAD` at generation time. After the map is committed, it remains an ancestor of the new `HEAD`.
 
-The fingerprint hashes sorted tracked paths and their current bytes. Missing tracked files use a deterministic marker.
+The fingerprint hashes sorted tracked paths. Text files contribute their current bytes. Binary files contribute path plus size, not file bytes, so large assets do not have to be read in full. Missing tracked files use a deterministic marker.
 
 `working_tree_dirty` ignores every path under `docs/codemap/`.
 
