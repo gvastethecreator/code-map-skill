@@ -4,8 +4,7 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
-import html
+from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -14,8 +13,18 @@ import subprocess
 import sys
 from typing import Any
 
+_SCRIPTS = str(Path(__file__).resolve().parent)
+if _SCRIPTS not in sys.path:
+    sys.path.insert(0, _SCRIPTS)
 
-ALGORITHM = "sha256-path-content-v1"
+from codemap_common import (
+    ALGORITHM,
+    CodemapError,
+    load_sibling,
+    module_fingerprint,
+    render_html,
+)
+
 ARTIFACTS = ("codemap.json", "codemap.md", "codemap.html", "codemap.lock")
 EDGE_TYPES = {"imports", "calls", "reads", "writes", "publishes", "subscribes"}
 NODE_TYPES = {"module", "service", "database", "queue", "interface", "external"}
@@ -46,8 +55,8 @@ DEFAULT_EXCLUDES = (
 )
 
 
-class CodemapError(RuntimeError):
-    pass
+def utc_now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def run_git(repo: Path, *args: str) -> str:
@@ -144,24 +153,6 @@ def module_id(path: str, scope: str) -> str:
         return scope
     first_child = remainder[0]
     return first_child if scope == "." else f"{scope}/{first_child}"
-
-
-def module_fingerprint(repo: Path, files: list[str]) -> str:
-    digest = hashlib.sha256()
-    digest.update(f"{ALGORITHM}\0".encode())
-    for relative in sorted(files):
-        digest.update(relative.encode("utf-8", errors="surrogateescape"))
-        digest.update(b"\0")
-        path = repo / Path(*PurePosixPath(relative).parts)
-        if path.is_file():
-            content = path.read_bytes()
-            digest.update(str(len(content)).encode())
-            digest.update(b"\0")
-            digest.update(content)
-        else:
-            digest.update(b"MISSING")
-        digest.update(b"\0")
-    return digest.hexdigest()
 
 
 def snapshot_modules(repo: Path, scopes: list[str], exclusions: list[str]) -> list[dict[str, Any]]:
@@ -667,11 +658,20 @@ def validate_directory(repo: Path, directory: Path, *, require_html: bool = True
 
 
 def command_status(args: argparse.Namespace) -> dict[str, Any]:
-    repo = repo_root(args.repo)
-    lock_path = resolve_inside(repo, args.lock)
+    return status_report(args.repo, args.lock, args.scope, args.exclude)
+
+
+def status_report(
+    repo: str | Path,
+    lock: str = "docs/codemap/codemap.lock",
+    scopes: list[str] | None = None,
+    exclusions: list[str] | None = None,
+) -> dict[str, Any]:
+    repo = repo_root(str(repo))
+    lock_path = resolve_inside(repo, lock)
     if not lock_path.is_file():
-        scopes = unique_paths(repo, args.scope or ["."])
-        exclusions = unique_paths(repo, args.exclude, DEFAULT_EXCLUDES)
+        scopes = unique_paths(repo, scopes or ["."])
+        exclusions = unique_paths(repo, exclusions, DEFAULT_EXCLUDES)
         modules = snapshot_modules(repo, scopes, exclusions)
         identifiers = [module["id"] for module in modules]
         return {
@@ -721,19 +721,28 @@ def command_status(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
-def command_lock(args: argparse.Namespace) -> dict[str, Any]:
-    repo = repo_root(args.repo)
-    scopes = unique_paths(repo, args.scope or ["."])
-    exclusions = unique_paths(repo, args.exclude, DEFAULT_EXCLUDES)
-    value = {
+def build_lock(
+    repo: Path,
+    generated_at: str,
+    scopes: list[str],
+    exclusions: list[str],
+) -> dict[str, Any]:
+    return {
         "source_commit": current_commit(repo),
         "working_tree_dirty": working_tree_dirty(repo),
-        "generated_at": args.generated_at,
+        "generated_at": generated_at,
         "scanned_scope": scopes,
         "excluded_directories": exclusions,
         "fingerprint_algorithm": ALGORITHM,
         "modules": snapshot_modules(repo, scopes, exclusions),
     }
+
+
+def command_lock(args: argparse.Namespace) -> dict[str, Any]:
+    repo = repo_root(args.repo)
+    scopes = unique_paths(repo, args.scope or ["."])
+    exclusions = unique_paths(repo, args.exclude, DEFAULT_EXCLUDES)
+    value = build_lock(repo, args.generated_at, scopes, exclusions)
     output = resolve_output(repo, args.output)
     write_json_atomic(output, value)
     return {"ok": True, "output": output.relative_to(repo).as_posix(), "modules": len(value["modules"])}
@@ -779,17 +788,11 @@ def command_render(args: argparse.Namespace) -> dict[str, Any]:
     repo = repo_root(args.repo)
     json_path = resolve_inside(repo, args.json)
     output = resolve_output(repo, args.output)
-    template = Path(args.template).resolve() if args.template else Path(__file__).resolve().parents[1] / "assets" / "codemap-template.html"
-    if not template.is_file():
-        raise CodemapError(f"template does not exist: {template}")
+    template = Path(args.template).resolve() if args.template else None
     data = load_json(json_path)
-    compact = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    content = template.read_text(encoding="utf-8")
-    required = ["__CODEMAP_DATA__", "__REPO_NAME__"]
-    if any(placeholder not in content for placeholder in required):
-        raise CodemapError("template placeholders are missing")
-    content = content.replace("__CODEMAP_DATA__", compact).replace("__REPO_NAME__", html.escape(repo.name))
-    write_text_atomic(output, content)
+    if not isinstance(data, dict):
+        raise CodemapError("codemap.json must contain an object")
+    write_text_atomic(output, render_html(data, repo.name, template))
     return {"ok": True, "output": output.relative_to(repo).as_posix()}
 
 
@@ -799,10 +802,7 @@ def command_validate(args: argparse.Namespace) -> dict[str, Any]:
     return validate_directory(repo, directory, require_html=True)
 
 
-def command_publish(args: argparse.Namespace) -> dict[str, Any]:
-    repo = repo_root(args.repo)
-    staging = resolve_output(repo, args.staging)
-    target = resolve_output(repo, args.target)
+def publish_staging(repo: Path, staging: Path, target: Path) -> dict[str, Any]:
     if staging == target:
         raise CodemapError("staging and target must differ")
     result = validate_directory(repo, staging, require_html=True)
@@ -825,6 +825,72 @@ def command_publish(args: argparse.Namespace) -> dict[str, Any]:
     final_result["published"] = [str((target / name).relative_to(repo).as_posix()) for name in ARTIFACTS]
     final_result["staging_validation"] = result["ok"]
     return final_result
+
+
+def command_publish(args: argparse.Namespace) -> dict[str, Any]:
+    repo = repo_root(args.repo)
+    return publish_staging(repo, resolve_output(repo, args.staging), resolve_output(repo, args.target))
+
+
+def write_views(repo: Path, staging: Path, model: dict[str, Any], generated_at: str) -> None:
+    if not isinstance(model, dict):
+        raise CodemapError("codemap.json must contain an object")
+    write_json_atomic(staging / "codemap.json", model)
+    write_text_atomic(staging / "codemap.md", render_markdown(model, repo.name))
+    write_text_atomic(staging / "codemap.html", render_html(model, repo.name))
+    scopes = unique_paths(repo, model.get("scope") if isinstance(model.get("scope"), list) else ["."])
+    exclusions = unique_paths(repo, None, DEFAULT_EXCLUDES)
+    write_json_atomic(staging / "codemap.lock", build_lock(repo, generated_at, scopes, exclusions))
+
+
+def build_and_publish(
+    repo: str | Path,
+    *,
+    generated_at: str | None = None,
+    staging: str = "docs/codemap/.staging",
+    target: str = "docs/codemap",
+    model: dict[str, Any] | None = None,
+    publish: bool = True,
+) -> dict[str, Any]:
+    repo_path = repo_root(str(repo))
+    stamp = generated_at or utc_now()
+    staging_dir = resolve_output(repo_path, staging)
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    summary: dict[str, Any]
+    if model is None:
+        generator = load_sibling("generate_repository_map.py", Path(__file__))
+        try:
+            model, summary = generator.generate(repo_path, stamp)
+        except Exception as error:
+            if error.__class__.__name__ == "AnalysisError":
+                raise CodemapError(str(error)) from error
+            raise
+    else:
+        summary = {
+            "nodes": len(model.get("nodes") or []),
+            "edges": len(model.get("edges") or []),
+            "flows": len(model.get("flows") or []),
+        }
+        stamp = str(model.get("generated_at") or stamp)
+    write_views(repo_path, staging_dir, model, stamp)
+    validation = validate_directory(repo_path, staging_dir, require_html=True)
+    result: dict[str, Any] = {**validation, "summary": summary, "generated_at": stamp}
+    if not publish:
+        result["staging"] = staging_dir.relative_to(repo_path).as_posix()
+        return result
+    published = publish_staging(repo_path, staging_dir, resolve_output(repo_path, target))
+    published["summary"] = summary
+    return published
+
+
+def command_build(args: argparse.Namespace) -> dict[str, Any]:
+    return build_and_publish(
+        args.repo,
+        generated_at=args.generated_at,
+        staging=args.staging,
+        target=args.target,
+        publish=not args.no_publish,
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -876,6 +942,14 @@ def build_parser() -> argparse.ArgumentParser:
     publish.add_argument("--staging", required=True)
     publish.add_argument("--target", default="docs/codemap")
     publish.set_defaults(handler=command_publish)
+
+    build = subparsers.add_parser("build", help="analyze, render views, lock, validate, and optionally publish")
+    build.add_argument("--repo", default=".")
+    build.add_argument("--generated-at")
+    build.add_argument("--staging", default="docs/codemap/.staging")
+    build.add_argument("--target", default="docs/codemap")
+    build.add_argument("--no-publish", action="store_true", help="leave validated artifacts in staging")
+    build.set_defaults(handler=command_build)
     return parser
 
 

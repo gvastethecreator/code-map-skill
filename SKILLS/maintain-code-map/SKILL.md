@@ -30,7 +30,9 @@ Read [references/artifact-contract.md](references/artifact-contract.md) before y
    - Done when the stale-module list is saved for the final report.
 
 3. Build the evidence model.
-   - Use tracked source, configuration, migrations, schemas, and tests as evidence.
+   - Use tracked source language files, package manifests, and `SKILL.md` as evidence.
+   - Do not parse wiki, docs, HTML dumps, or binary assets as the import graph.
+   - If a repository has no source language files, fall back to tracked text files so the generator still runs.
    - Select no more than 20 primary nodes.
    - Group low-level files under the module that owns them.
    - Include major modules, services, databases, queues, interfaces, and external dependencies.
@@ -39,7 +41,8 @@ Read [references/artifact-contract.md](references/artifact-contract.md) before y
    - Use exact source paths and literal symbols for verified evidence. Cap evidence locations at 3.
    - Mark an edge `unknown` when source evidence does not prove the relationship.
    - Do not infer a relationship from names, folder proximity, or architecture prose alone.
-   - For large batches, run `generate_repository_map.py` to create a conservative baseline.
+   - For large batches, run `codemap_tool.py build` to create a conservative baseline in one process.
+   - Keep the individual generate, markdown, render, lock, validate, and publish commands for debugging.
    - For a drive-wide first pass, run `generate_drive_maps.py` without `--write` to inspect scope, then repeat with `--write`.
    - The drive command publishes JSON, Markdown, HTML, and lock.
    - Review automatic roles and flows against the repository entrypoints before publication.
@@ -47,7 +50,8 @@ Read [references/artifact-contract.md](references/artifact-contract.md) before y
    - Done when every node and verified edge has source evidence.
 
 4. Generate the versioned artifacts together.
-   - Create `docs/codemap/.staging/` for the new artifact set.
+   - Prefer `codemap_tool.py build` so JSON, Markdown, HTML, and lock are written, validated, and published in one process.
+   - Create `docs/codemap/.staging/` only when debugging the individual commands.
    - Write `codemap.json` first, according to the artifact contract.
    - Use one UTC generation time and the current `HEAD` as `source_commit` / `generated_from_commit`.
    - Run `codemap_tool.py markdown` to derive `codemap.md` from the JSON.
@@ -84,6 +88,8 @@ Set `<skill-root>` to this skill directory.
 
 ```powershell
 python <skill-root>/scripts/codemap_tool.py status --repo . --lock docs/codemap/codemap.lock
+
+python <skill-root>/scripts/codemap_tool.py build --repo . --generated-at <utc-time>
 
 python <skill-root>/scripts/generate_repository_map.py --repo . --output docs/codemap/.staging/codemap.json --generated-at <utc-time>
 
@@ -122,8 +128,8 @@ Repeat `--scope` and `--exclude` for the repository. Use `--scope .` only when r
 
 - `references/artifact-contract.md`: JSON, Markdown, HTML, lock, and report contracts.
 - `references/diagram-grammar.md`: visual rules for the published HTML view.
-- `scripts/codemap_tool.py`: freshness, Markdown, impact, HTML render, publishing, and validation.
-- `scripts/generate_repository_map.py`: conservative tracked-source baseline for large repository batches.
+- `scripts/codemap_tool.py`: freshness, Markdown, impact, HTML render, in-process build, publishing, and validation.
+- `scripts/generate_repository_map.py`: conservative source-file baseline. Prefer `codemap_tool.py build`.
 - `scripts/generate_drive_maps.py`: Git-root inventory and validated drive-wide publication of json, md, html, and lock.
 - `scripts/verify_codemap_browser.cjs`: optional Chrome DevTools Protocol smoke check after HTML render.
 - `assets/codemap-template.html`: self-contained interactive browser template.

@@ -3,12 +3,17 @@
 
 from __future__ import annotations
 
-import html
 import json
 from pathlib import Path
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-TEMPLATE = ROOT / "SKILLS" / "maintain-code-map" / "assets" / "codemap-template.html"
+SCRIPTS = ROOT / "SKILLS" / "maintain-code-map" / "scripts"
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
+
+from codemap_common import render_html
+
 EXAMPLES = ROOT / "examples"
 DOCS_EXAMPLES = ROOT / "docs" / "examples"
 STAMP = "2026-08-16T22:00:00Z"
@@ -236,11 +241,7 @@ def render_example(slug: str, title: str, data: dict) -> Path:
     json_path = folder / "codemap.json"
     html_path = folder / "codemap.html"
     json_path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    compact = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    content = TEMPLATE.read_text(encoding="utf-8")
-    if "__CODEMAP_DATA__" not in content or "__REPO_NAME__" not in content:
-        raise SystemExit("template placeholders are missing")
-    content = content.replace("__CODEMAP_DATA__", compact).replace("__REPO_NAME__", html.escape(title))
+    content = render_html(data, title)
     html_path.write_text(content, encoding="utf-8")
     docs_html = DOCS_EXAMPLES / slug / "codemap.html"
     docs_html.parent.mkdir(parents=True, exist_ok=True)

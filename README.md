@@ -79,6 +79,8 @@ Set `<skill-root>` to the installed skill directory. Artifacts land in the targe
 ```powershell
 python <skill-root>/scripts/codemap_tool.py status --repo . --lock docs/codemap/codemap.lock
 
+python <skill-root>/scripts/codemap_tool.py build --repo . --generated-at <utc-time>
+
 python <skill-root>/scripts/generate_repository_map.py --repo . --output docs/codemap/.staging/codemap.json --generated-at <utc-time>
 
 python <skill-root>/scripts/codemap_tool.py markdown --repo . --json docs/codemap/.staging/codemap.json --output docs/codemap/.staging/codemap.md
@@ -110,7 +112,7 @@ node <skill-root>/scripts/verify_codemap_browser.cjs docs/codemap/codemap.html
 - [SKILL.md](./SKILLS/maintain-code-map/SKILL.md): router, process, and command list.
 - [artifact-contract.md](./SKILLS/maintain-code-map/references/artifact-contract.md): JSON, Markdown, HTML, lock, and report contracts.
 - [diagram-grammar.md](./SKILLS/maintain-code-map/references/diagram-grammar.md): visual rules for the HTML view.
-- [codemap_tool.py](./SKILLS/maintain-code-map/scripts/codemap_tool.py): status, markdown, render, lock, validate, publish, impact.
+- [codemap_tool.py](./SKILLS/maintain-code-map/scripts/codemap_tool.py): status, build, markdown, render, lock, validate, publish, impact.
 - [generate_repository_map.py](./SKILLS/maintain-code-map/scripts/generate_repository_map.py): conservative tracked-source baseline.
 - [generate_drive_maps.py](./SKILLS/maintain-code-map/scripts/generate_drive_maps.py): Git-root inventory and validated batch publish.
 - [evals/cases.json](./evals/cases.json): routing and safety cases.
