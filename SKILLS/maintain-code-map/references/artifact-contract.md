@@ -1,15 +1,15 @@
 # Artifact Contract
 
-One model, four files. Generate JSON and lock from one analysis. Derive Markdown and HTML from the JSON.
+One model, four files: generate JSON and lock from one analysis; derive Markdown and HTML from JSON.
 
 Versioned under `docs/codemap/`:
 
-- `codemap.json` — source of truth
-- `codemap.md` — agent-read view
-- `codemap.html` — human diagram
-- `codemap.lock` — freshness
+- `codemap.json`: source of truth
+- `codemap.md`: agent-read view
+- `codemap.html`: human diagram
+- `codemap.lock`: freshness
 
-Publish all four together. Do not leave HTML out.
+Publish all four; do not leave HTML out.
 
 ## `codemap.json`
 
@@ -24,13 +24,13 @@ Publish all four together. Do not leave HTML out.
 }
 ```
 
-Use repository-relative POSIX paths. Sort nodes and edges by stable IDs. Keep flow steps in runtime order. At most 20 nodes. At most 5 flows. Flows may be empty.
+POSIX repo-relative paths. Sort nodes and edges by stable IDs. Flow steps in runtime order. At most 20 nodes, 5 flows (flows can be empty).
 
 ### Nodes
 
-Required fields: `id`, `path`, `type`, `boundary`, `entrypoints`, `tests`, `callers`, `callees`, `evidence`.
+Required: `id`, `path`, `type`, `boundary`, `entrypoints`, `tests`, `callers`, `callees`, `evidence`.
 
-Optional fields: `role`, `constraints`. Omit them when they add no information.
+Optional: `role`, `constraints`. Omit if they add no information.
 
 ```json
 {
@@ -86,24 +86,22 @@ Generate with `codemap_tool.py markdown`. Always derive it from JSON. Keep it un
 Required sections:
 
 - header: repo name, `generated_at`, short commit, scope, counts
-- `## Modules` — one bullet per node: id, path, type, boundary, callers, callees, tests, entry
-- `## Edges` — `from -> to · type`
-- `## Unknown` — unknown edges, or `- none`
-- `## Flows` — real flows, or `- none`
+- `## Modules`: one bullet per node: id, path, type, boundary, callers, callees, tests, entry
+- `## Edges`: `from -> to · type`
+- `## Unknown`: unknown edges, or `- none`
+- `## Flows`: real flows, or `- none`
 
-No evidence blobs. No generic role text.
-
-The Markdown must name the same node ids, edge pairs, and flow steps as the JSON.
+No evidence blobs. No generic role text. Markdown must name the same node ids, edge pairs, and flow steps as the JSON.
 
 ## `codemap.html`
 
 Generate with `codemap_tool.py render` from the same JSON. Publish it with json, md, and lock. Do not hand-edit it.
 
-The renderer embeds the JSON payload in the template. The template is self-contained: no network, package, font, image, script, or stylesheet request. System fonts only.
+Renderer embeds the JSON in the template. Self-contained: no network, package, font, image, script, or stylesheet request. System fonts only.
 
-The rendered diagram must satisfy [diagram-grammar.md](diagram-grammar.md). Interaction stays live: selection, callers, callees, search, and flows when present.
+Rendered diagram must satisfy [diagram-grammar.md](diagram-grammar.md). Selection, callers, callees, and search stay live; flows too if they exist.
 
-Validate HTML with the other artifacts. `--html` is a leftover flag; HTML is required.
+Validate HTML with the other artifacts. `--html` is a leftover flag. HTML is required.
 
 ## `codemap.lock`
 
@@ -130,7 +128,7 @@ Generate with `codemap_tool.py lock`.
 
 `source_commit` is `HEAD` at generation time. After the map is committed, it remains an ancestor of the new `HEAD`.
 
-The fingerprint hashes sorted tracked paths. Text files contribute their current bytes. Binary files contribute path plus size, not file bytes, so large assets do not have to be read in full. Missing tracked files use a deterministic marker.
+Fingerprint hashes sorted tracked paths. Text files contribute current bytes. Binary files contribute path plus size, not file bytes. Large assets do not have to be read in full. Missing tracked files use a deterministic marker.
 
 `working_tree_dirty` ignores every path under `docs/codemap/`.
 
@@ -140,29 +138,17 @@ JSON `generated_from_commit` must equal lock `source_commit`.
 
 Default (`json` + `md` + `lock`):
 
-- `codemap.json` parses.
-- Node count is 1 to 20.
-- Flow count is 0 to 5.
-- Every node path and test path exists.
-- Every verified evidence path exists, contains its literal symbol, and has at most 3 locations.
-- Every edge endpoint and flow step references a node.
-- Every consecutive flow step has a directed edge.
-- Edge types use the allowed vocabulary.
-- Unproved edges use `status: unknown` with no locations.
-- `callers` and `callees` match the edges.
-- Markdown names the same node ids, edge pairs, and flow steps.
-- Lock `source_commit` is a 40-character commit that exists and is `HEAD` or an ancestor of `HEAD`.
-- JSON `generated_from_commit` equals lock `source_commit`.
-- Lock dirty state, scope, exclusions, and fingerprints match generation. Dirty state ignores `docs/codemap/`.
+- `codemap.json` parses; nodes 1–20; flows 0–5.
+- Every node path, test path, and verified evidence path exists; evidence contains its literal symbol; ≤3 locations.
+- Every edge endpoint and flow step references a node; consecutive flow steps have a directed edge.
+- Edge types use the allowed vocabulary; unproved edges use `status: unknown` with no locations.
+- `callers`/`callees` match the edges; Markdown names the same node ids, edge pairs, and flow steps.
+- Lock `source_commit` is a 40-character commit that exists and is `HEAD` or an ancestor of `HEAD`; equals JSON `generated_from_commit`.
+- Lock dirty state, scope, exclusions, and fingerprints match generation; dirty ignores `docs/codemap/`.
 
-HTML:
+HTML embeds the same nodes, edges, and flows as the JSON and stays self-contained. Then open it in a browser — static validation does not prove interaction.
 
-- The HTML embeds the same nodes, edges, and flows as the JSON.
-- The file stays self-contained.
-
-Then open the HTML in a browser. Static validation does not prove interaction.
-
-`verify_codemap_browser.cjs` is a smoke check: nodes visible, click selects, no non-`file:` request, no page errors. It uses Chrome DevTools Protocol through a native browser pipe. It must not require Playwright.
+`verify_codemap_browser.cjs` is a smoke check: nodes visible, click selects, no non-`file:` request, no page errors. Uses Chrome DevTools Protocol through a native browser pipe. Must not require Playwright.
 
 ## Final Report
 
@@ -172,6 +158,6 @@ Then open the HTML in a browser. Static validation does not prove interaction.
 4. Static validation, and browser smoke only if HTML was rendered.
 5. The complete tracked and untracked artifact diff.
 
-Compare staged replacements with `git diff --no-index`. Use `NUL` on Windows or `/dev/null` on POSIX when a current artifact does not exist.
+Compare staged replacements with `git diff --no-index`. If a current artifact does not exist, use `NUL` on Windows or `/dev/null` on POSIX.
 
 After publication, use `git diff -- docs/codemap` for tracked artifacts.
