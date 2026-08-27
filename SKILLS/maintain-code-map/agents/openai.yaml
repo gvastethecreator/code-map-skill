@@ -1,6 +1,6 @@
 interface:
   display_name: "Maintain Code Map"
-  short_description: "Generate agent-read code maps and publish JSON, Markdown, HTML, and lock"
+  short_description: "Generate or refresh JSON, Markdown, HTML, and lock maps."
   default_prompt: "Use $maintain-code-map to generate or refresh the repository code map and validate its lock."
 policy:
   allow_implicit_invocation: true
