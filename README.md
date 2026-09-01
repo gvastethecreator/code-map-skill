@@ -11,9 +11,9 @@
 
 [Site](https://gvastethecreator.github.io/code-map-skill/) · [Install](#install) · [Examples](#examples) · [Use it when](#use-it-when) · [Contributing](CONTRIBUTING.md)
 
-Agents read Markdown first. Humans open the published HTML. The lock records module fingerprints so a later agent can tell whether the map is stale before it edits product code.
+Agents read Markdown first. Humans open the HTML map. The lock records module fingerprints so a later agent can tell whether the map is stale before it edits product code.
 
-The live site is [gvastethecreator.github.io/code-map-skill](https://gvastethecreator.github.io/code-map-skill/). GitHub Pages publishes the `docs/` folder from `main`.
+The live site is [gvastethecreator.github.io/code-map-skill](https://gvastethecreator.github.io/code-map-skill/). GitHub Pages serves the `docs/` folder from `main`.
 
 ## Examples
 
@@ -42,7 +42,7 @@ Four fictional infrastructures. Each cell opens the live HTML map. GitHub does n
   </tr>
 </table>
 
-Source JSON lives in [`examples/`](examples/). Published HTML copies live in [`docs/examples/`](docs/examples/). Rebuild the gallery from the skill repo:
+Source JSON lives in [`examples/`](examples/). HTML copies live in [`docs/examples/`](docs/examples/). Rebuild the gallery from the skill repo:
 
 ```powershell
 python scripts/build_examples.py
@@ -131,3 +131,4 @@ python -B -m unittest SKILLS/maintain-code-map/scripts/test_codemap_tool.py
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
