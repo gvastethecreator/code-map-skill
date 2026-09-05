@@ -50,7 +50,7 @@ Read [references/artifact-contract.md](references/artifact-contract.md) before c
 
 5. Smoke-check the HTML after render.
    - Open the file directly, without a server.
-   - Run `verify_codemap_browser.cjs` as a smoke check: nodes visible, click selects, no network.
+   - Run `verify_codemap_browser.cjs` at final integration when the HTML renderer or interaction changed, or browser proof was explicitly requested: nodes visible, click selects, no network. Routine map-data updates use the build's structural validation without an extra browser gate.
    - If browser detection fails, pass `--browser <executable>` or set `CODEMAP_BROWSER_EXECUTABLE`.
    - Done: static file works with network access disabled.
 
